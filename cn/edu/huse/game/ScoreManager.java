@@ -185,6 +185,42 @@ public class ScoreManager {
     }
 
     /**
+     * 加载存档数据
+     */
+    public void loadData(int highScore, int totalCoins, int currentLevel,
+                         boolean[] levelCompleted, boolean[] skinUnlocked,
+                         int infiniteHighScore, int[] leaderboard,
+                         int totalDeaths, int totalRevives,
+                         int totalPowerUps, int totalCoinsCollected) {
+        this.highScore = highScore;
+        this.totalCoins = totalCoins;
+        this.currentLevel = currentLevel;
+        this.levelCompleted = levelCompleted;
+        this.skinUnlocked = skinUnlocked;
+        this.infiniteHighScore = infiniteHighScore;
+        this.leaderboard = leaderboard;
+        this.totalDeaths = totalDeaths;
+        this.totalRevives = totalRevives;
+        this.totalPowerUps = totalPowerUps;
+        this.totalCoinsCollected = totalCoinsCollected;
+        saveSaveData();
+    }
+
+    /**
+     * 获取关卡完成状态数组
+     */
+    public boolean[] getLevelCompleted() {
+        return levelCompleted;
+    }
+
+    /**
+     * 获取皮肤解锁状态数组
+     */
+    public boolean[] getSkinUnlocked() {
+        return skinUnlocked;
+    }
+
+    /**
      * 完成关卡
      * @param level 关卡编号
      */

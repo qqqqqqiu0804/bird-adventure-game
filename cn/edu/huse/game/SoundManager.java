@@ -14,11 +14,13 @@ public class SoundManager {
     private Clip levelCompleteClip;
     private Clip powerUpClip;
     private Clip coinClip;
+    private SettingsManager settingsManager;  // 添加设置管理器引用
 
     /**
      * 构造方法
      */
-    public SoundManager() {
+    public SoundManager(SettingsManager settingsManager) {
+        this.settingsManager = settingsManager;
         // 预加载音效，失败时静默降级
         clickClip = loadClip("click.wav");
         scoreClip = loadClip("score.wav");
@@ -45,15 +47,43 @@ public class SoundManager {
     }
 
     /**
-     * 播放音效
+     * 播放音效（应用音量设置）
      */
     private void play(Clip clip) {
         if (clip == null) return;  // 容错
         try {
+            // 应用音效音量设置
+            applyVolume(clip, settingsManager.getSfxVolume());
             clip.setFramePosition(0);
             clip.start();
         } catch (Exception e) {
             // 播放失败静默处理
+        }
+    }
+
+    /**
+     * 应用音量设置到 Clip
+     * @param clip 音频片段
+     * @param volume 音量值 0-100
+     */
+    private void applyVolume(Clip clip, int volume) {
+        try {
+            if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+                FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+                // 将 0-100 转换为分贝值
+                // 0% -> -80dB (静音), 100% -> 0dB (最大)
+                float dB;
+                if (volume == 0) {
+                    dB = -80.0f;
+                } else {
+                    dB = (float) (20.0 * Math.log10(volume / 100.0));
+                }
+                // 确保在有效范围内
+                dB = Math.max(gainControl.getMinimum(), Math.min(gainControl.getMaximum(), dB));
+                gainControl.setValue(dB);
+            }
+        } catch (Exception e) {
+            // 音量设置失败静默处理
         }
     }
 

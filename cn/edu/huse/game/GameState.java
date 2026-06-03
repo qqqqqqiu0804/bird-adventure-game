@@ -20,5 +20,6 @@ public enum GameState {
     SHOP,           // 商店
     INFINITE,       // 无限模式
     LEADERBOARD,    // 排行榜
-    OBSTACLE_SKIN   // 障碍物皮肤选择
+    OBSTACLE_SKIN,  // 障碍物皮肤选择
+    SETTINGS        // 设置界面
 }

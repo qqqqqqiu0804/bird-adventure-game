@@ -1,33 +1,59 @@
-# Java
+# Compiled class files
 *.class
+
+# Package files
 *.jar
 *.war
 *.ear
-*.nar
-target/
-dist/
-build/
+*.zip
+*.tar.gz
+*.rar
 
-# IDE
+# Log files
+*.log
+
+# BlueJ files
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+# IDE files
 .idea/
 *.iml
 *.iws
 *.ipr
 .vscode/
 .settings/
-.classpath
 .project
+.classpath
+.factorypath
 *.swp
 *.swo
 *~
 
-# OS
+# OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
-Desktop.ini
 
-# Game saves
-.bird_adventure/
+# Build output
+dist/
+build/
+out/
+target/
 
-# Logs
-*.log
+# User-specific files
+*.suo
+*.user
+*.sln.docstates
+
+# Windows shortcuts
+*.lnk

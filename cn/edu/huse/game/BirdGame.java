@@ -35,6 +35,8 @@ public class BirdGame extends JPanel {
     SceneManager sceneManager;
     UpgradeSystem upgradeSystem;
     ObstacleSkinManager obstacleSkinManager;  // 障碍物皮肤管理器
+    SaveManager saveManager;                  // 存档管理器
+    SettingsManager settingsManager;          // 设置管理器
 
     // 缓存字体
     Font scoreFont = new Font(Font.SANS_SERIF, Font.BOLD, 30);
@@ -78,7 +80,6 @@ public class BirdGame extends JPanel {
         state = GameState.MAIN_MENU;
         currentLevel = new Level(1);
         scoreManager = new ScoreManager();
-        soundManager = new SoundManager();
         particles = new ParticleSystem();
         random = new Random();
 
@@ -88,6 +89,9 @@ public class BirdGame extends JPanel {
         sceneManager = new SceneManager();
         upgradeSystem = new UpgradeSystem();
         obstacleSkinManager = new ObstacleSkinManager();
+        saveManager = new SaveManager();
+        settingsManager = new SettingsManager();
+        soundManager = new SoundManager(settingsManager);  // 传递设置管理器
 
         // 初始化生命值
         maxHealth = upgradeSystem.getMaxHealth();
@@ -166,6 +170,9 @@ public class BirdGame extends JPanel {
                 break;
             case OBSTACLE_SKIN:
                 drawObstacleSkinSelect(g);
+                break;
+            case SETTINGS:
+                drawSettings(g);
                 break;
         }
     }
@@ -664,21 +671,22 @@ public class BirdGame extends JPanel {
         g.drawString("冒险版", GameConfig.WIDTH / 2 - 30, 150);
 
         // 按钮
-        drawButton(g, "开始游戏", GameConfig.WIDTH / 2 - 80, 160, 160, 40, Color.GREEN);
-        drawButton(g, "关卡选择", GameConfig.WIDTH / 2 - 80, 210, 160, 40, Color.BLUE);
-        drawButton(g, "皮肤选择", GameConfig.WIDTH / 2 - 80, 260, 160, 40, Color.ORANGE);
-        drawButton(g, "场景选择", GameConfig.WIDTH / 2 - 80, 310, 160, 40, Color.CYAN);
-        drawButton(g, "障碍物皮肤", GameConfig.WIDTH / 2 - 80, 360, 160, 40, new Color(139, 90, 43));
-        drawButton(g, "升级系统", GameConfig.WIDTH / 2 - 80, 410, 160, 40, Color.YELLOW);
-        drawButton(g, "成就系统", GameConfig.WIDTH / 2 - 80, 460, 160, 40, Color.MAGENTA);
-        drawButton(g, "排行榜", GameConfig.WIDTH / 2 - 80, 510, 160, 40, new Color(255, 200, 0));
+        drawButton(g, "开始游戏", GameConfig.WIDTH / 2 - 80, 150, 160, 38, Color.GREEN);
+        drawButton(g, "关卡选择", GameConfig.WIDTH / 2 - 80, 195, 160, 38, Color.BLUE);
+        drawButton(g, "皮肤选择", GameConfig.WIDTH / 2 - 80, 240, 160, 38, Color.ORANGE);
+        drawButton(g, "场景选择", GameConfig.WIDTH / 2 - 80, 285, 160, 38, Color.CYAN);
+        drawButton(g, "障碍物皮肤", GameConfig.WIDTH / 2 - 80, 330, 160, 38, new Color(139, 90, 43));
+        drawButton(g, "升级系统", GameConfig.WIDTH / 2 - 80, 375, 160, 38, Color.YELLOW);
+        drawButton(g, "成就系统", GameConfig.WIDTH / 2 - 80, 420, 160, 38, Color.MAGENTA);
+        drawButton(g, "排行榜", GameConfig.WIDTH / 2 - 80, 465, 160, 38, new Color(255, 200, 0));
+        drawButton(g, "设置", GameConfig.WIDTH / 2 - 80, 510, 160, 38, Color.GRAY);
 
         // 无限模式按钮（通关后显示）
         if (scoreManager.areAllLevelsCompleted()) {
-            drawButton(g, "无限模式", GameConfig.WIDTH / 2 - 80, 560, 160, 40, new Color(255, 100, 0));
-            drawButton(g, "退出游戏", GameConfig.WIDTH / 2 - 80, 620, 160, 40, Color.RED);
+            drawButton(g, "无限模式", GameConfig.WIDTH / 2 - 80, 555, 160, 38, new Color(255, 100, 0));
+            drawButton(g, "退出游戏", GameConfig.WIDTH / 2 - 80, 600, 160, 38, Color.RED);
         } else {
-            drawButton(g, "退出游戏", GameConfig.WIDTH / 2 - 80, 560, 160, 40, Color.RED);
+            drawButton(g, "退出游戏", GameConfig.WIDTH / 2 - 80, 555, 160, 38, Color.RED);
         }
 
         // 作弊模式按钮（右下角上移）
@@ -836,6 +844,121 @@ public class BirdGame extends JPanel {
 
         // 返回按钮
         drawButton(g, "返回主菜单", GameConfig.WIDTH / 2 - 80, GameConfig.HEIGHT - 100, 160, 50, Color.RED);
+    }
+
+    /**
+     * 绘制设置界面
+     */
+    private void drawSettings(Graphics g) {
+        g.setColor(new Color(0, 0, 0, 150));
+        g.fillRect(0, 0, GameConfig.WIDTH, GameConfig.HEIGHT);
+
+        // 标题
+        g.setFont(titleFont);
+        g.setColor(Color.WHITE);
+        g.drawString("设置", GameConfig.WIDTH / 2 - 60, 80);
+
+        // 音量设置区域
+        g.setFont(levelFont);
+        g.setColor(Color.WHITE);
+        g.drawString("音量设置", 50, 150);
+
+        // 音效音量条
+        g.setFont(smallFont);
+        g.setColor(Color.WHITE);
+        g.drawString("音效", 50, 190);
+        drawVolumeBar(g, 180, 175, 300, 25, settingsManager.getSfxVolume());
+
+        // 存档管理区域
+        g.setFont(levelFont);
+        g.setColor(Color.WHITE);
+        g.drawString("存档管理", 50, 260);
+
+        // 绘制3个存档槽位
+        for (int i = 0; i < 3; i++) {
+            drawSaveSlot(g, 50, 280 + i * 70, i);
+        }
+
+        // 导入导出按钮
+        drawButton(g, "导入存档", 50, 500, 120, 35, Color.BLUE);
+        drawButton(g, "导出存档", 200, 500, 120, 35, Color.CYAN);
+
+        // 数据管理区域
+        g.setFont(levelFont);
+        g.setColor(Color.WHITE);
+        g.drawString("数据管理", 50, 570);
+
+        // 重置金币按钮
+        drawButton(g, "重置金币", 50, 600, 120, 35, Color.ORANGE);
+
+        // 恢复出厂设置按钮
+        drawButton(g, "恢复出厂设置", 200, 600, 150, 35, Color.RED);
+
+        // 返回按钮
+        drawButton(g, "返回主菜单", GameConfig.WIDTH / 2 - 80, GameConfig.HEIGHT - 80, 160, 50, Color.RED);
+    }
+
+    /**
+     * 绘制音量条
+     */
+    private void drawVolumeBar(Graphics g, int x, int y, int width, int height, int volume) {
+        // 背景
+        g.setColor(new Color(50, 50, 50));
+        g.fillRect(x, y, width, height);
+
+        // 音量条
+        int fillWidth = (int)(width * volume / 100.0);
+        g.setColor(new Color(0, 200, 0));
+        g.fillRect(x, y, fillWidth, height);
+
+        // 边框
+        g.setColor(Color.WHITE);
+        g.drawRect(x, y, width, height);
+
+        // 音量数值
+        g.setFont(smallFont);
+        g.setColor(Color.WHITE);
+        g.drawString(volume + "%", x + width + 10, y + 18);
+
+        // 滑块按钮
+        drawButton(g, "-", x - 30, y, 25, height, Color.GRAY);
+        drawButton(g, "+", x + width + 40, y, 25, height, Color.GRAY);
+    }
+
+    /**
+     * 绘制存档槽位
+     */
+    private void drawSaveSlot(Graphics g, int x, int y, int slotIndex) {
+        SaveManager.SaveSlot slot = saveManager.getSlotInfo(slotIndex);
+
+        // 槽位背景
+        g.setColor(new Color(50, 50, 50, 200));
+        g.fillRect(x, y, GameConfig.WIDTH - 100, 60);
+
+        // 槽位编号
+        g.setFont(levelFont);
+        g.setColor(Color.WHITE);
+        g.drawString("存档" + (slotIndex + 1), x + 10, y + 25);
+
+        if (slot.isEmpty) {
+            // 空槽位
+            g.setFont(smallFont);
+            g.setColor(Color.GRAY);
+            g.drawString("空槽位", x + 100, y + 25);
+            drawButton(g, "保存", GameConfig.WIDTH - 180, y + 10, 70, 40, Color.GREEN);
+        } else {
+            // 有存档
+            g.setFont(smallFont);
+            g.setColor(Color.WHITE);
+            g.drawString(slot.name, x + 100, y + 20);
+            g.setColor(Color.GRAY);
+            g.drawString(slot.timestamp, x + 100, y + 40);
+
+            // 操作按钮
+            drawButton(g, "加载", GameConfig.WIDTH - 260, y + 10, 60, 40, Color.BLUE);
+            drawButton(g, "删除", GameConfig.WIDTH - 190, y + 10, 60, 40, Color.RED);
+            drawButton(g, "重命名", GameConfig.WIDTH - 120, y + 10, 70, 40, Color.YELLOW);
+        }
     }
 
     /**
@@ -1351,6 +1474,9 @@ public class BirdGame extends JPanel {
             case OBSTACLE_SKIN:
                 handleObstacleSkinSelectClick(mouseX, mouseY);
                 break;
+            case SETTINGS:
+                handleSettingsClick(mouseX, mouseY);
+                break;
         }
     }
 
@@ -1359,51 +1485,56 @@ public class BirdGame extends JPanel {
      */
     private void handleMainMenuClick(int mouseX, int mouseY) {
         // 开始游戏按钮
-        if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 160, 160, 40)) {
+        if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 150, 160, 38)) {
             state = GameState.START;
             currentLevel = new Level(scoreManager.getCurrentLevel());
             resetGameObjects();
             soundManager.playClick();
         }
         // 关卡选择按钮
-        else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 210, 160, 40)) {
+        else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 195, 160, 38)) {
             state = GameState.LEVEL_SELECT;
             soundManager.playClick();
         }
         // 皮肤选择按钮
-        else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 260, 160, 40)) {
+        else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 240, 160, 38)) {
             state = GameState.SKIN_SELECT;
             soundManager.playClick();
         }
         // 场景选择按钮
-        else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 310, 160, 40)) {
+        else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 285, 160, 38)) {
             state = GameState.SCENE_SELECT;
             soundManager.playClick();
         }
         // 障碍物皮肤按钮
-        else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 360, 160, 40)) {
+        else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 330, 160, 38)) {
             state = GameState.OBSTACLE_SKIN;
             soundManager.playClick();
         }
         // 升级系统按钮
-        else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 410, 160, 40)) {
+        else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 375, 160, 38)) {
             state = GameState.UPGRADE;
             soundManager.playClick();
         }
         // 成就系统按钮
-        else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 460, 160, 40)) {
+        else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 420, 160, 38)) {
             state = GameState.ACHIEVEMENTS;
             soundManager.playClick();
         }
         // 排行榜按钮
-        else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 510, 160, 40)) {
+        else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 465, 160, 38)) {
             state = GameState.LEADERBOARD;
             soundManager.playClick();
         }
+        // 设置按钮
+        else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 510, 160, 38)) {
+            state = GameState.SETTINGS;
+            soundManager.playClick();
+        }
         // 无限模式按钮（通关后可用）
-        else if (scoreManager.areAllLevelsCompleted() && isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 560, 160, 40)) {
+        else if (scoreManager.areAllLevelsCompleted() && isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 555, 160, 38)) {
             state = GameState.INFINITE;
-            currentLevel = new Level(GameConfig.TOTAL_LEVELS);  // 使用最后一关的难度
+            currentLevel = new Level(GameConfig.TOTAL_LEVELS);
             resetGameObjects();
             soundManager.playClick();
         }
@@ -1560,6 +1691,135 @@ public class BirdGame extends JPanel {
         if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, GameConfig.HEIGHT - 100, 160, 50)) {
             state = GameState.MAIN_MENU;
             soundManager.playClick();
+        }
+    }
+
+    /**
+     * 处理设置界面点击
+     */
+    private void handleSettingsClick(int mouseX, int mouseY) {
+        // 音量控制 - 音效
+        if (isButtonClick(mouseX, mouseY, 150, 175, 25, 25)) {
+            settingsManager.setSfxVolume(Math.max(0, settingsManager.getSfxVolume() - 10));
+            soundManager.playClick();
+        } else if (isButtonClick(mouseX, mouseY, 520, 175, 25, 25)) {
+            settingsManager.setSfxVolume(Math.min(100, settingsManager.getSfxVolume() + 10));
+            soundManager.playClick();
+        }
+        // 存档槽位操作
+        else {
+            for (int i = 0; i < 3; i++) {
+                int slotY = 280 + i * 70;
+                SaveManager.SaveSlot slot = saveManager.getSlotInfo(i);
+
+                if (slot.isEmpty) {
+                    // 空槽位 - 保存按钮
+                    if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH - 180, slotY + 10, 70, 40)) {
+                        saveManager.saveGame(i, scoreManager, achievementManager,
+                                skinManager.getSelectedSkinIndex(),
+                                sceneManager.getSelectedSceneIndex(),
+                                obstacleSkinManager.getSelectedSkinIndex());
+                        soundManager.playClick();
+                        break;
+                    }
+                } else {
+                    // 有存档 - 加载按钮
+                    if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH - 260, slotY + 10, 60, 40)) {
+                        SaveManager.GameSaveData data = saveManager.loadGame(i);
+                        if (data != null) {
+                            applySaveData(data);
+                        }
+                        soundManager.playClick();
+                        break;
+                    }
+                    // 删除按钮
+                    else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH - 190, slotY + 10, 60, 40)) {
+                        saveManager.deleteGame(i);
+                        soundManager.playClick();
+                        break;
+                    }
+                    // 重命名按钮
+                    else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH - 120, slotY + 10, 70, 40)) {
+                        // 简单重命名：使用时间戳
+                        String newName = "存档" + (i + 1) + "-" + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HHmmss"));
+                        saveManager.renameGame(i, newName);
+                        soundManager.playClick();
+                        break;
+                    }
+                }
+            }
+
+            // 导入存档按钮
+            if (isButtonClick(mouseX, mouseY, 50, 500, 120, 35)) {
+                // 简化：导入到第一个空槽位
+                for (int i = 0; i < 3; i++) {
+                    if (saveManager.getSlotInfo(i).isEmpty) {
+                        // 这里简化处理，实际应该打开文件选择器
+                        soundManager.playClick();
+                        break;
+                    }
+                }
+            }
+            // 导出存档按钮
+            else if (isButtonClick(mouseX, mouseY, 200, 500, 120, 35)) {
+                // 简化：导出当前槽位
+                if (saveManager.getCurrentSlot() >= 0) {
+                    String json = saveManager.exportSave(saveManager.getCurrentSlot());
+                    if (json != null) {
+                        // 这里简化处理，实际应该保存到文件
+                        soundManager.playClick();
+                    }
+                }
+            }
+            // 重置金币按钮
+            else if (isButtonClick(mouseX, mouseY, 50, 600, 120, 35)) {
+                settingsManager.resetCoins(scoreManager);
+                soundManager.playClick();
+            }
+            // 恢复出厂设置按钮
+            else if (isButtonClick(mouseX, mouseY, 200, 600, 150, 35)) {
+                settingsManager.factoryReset();
+                // 重新加载游戏状态
+                scoreManager = new ScoreManager();
+                achievementManager = new AchievementManager();
+                soundManager.playClick();
+            }
+            // 返回按钮
+            else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, GameConfig.HEIGHT - 80, 160, 50)) {
+                state = GameState.MAIN_MENU;
+                soundManager.playClick();
+            }
+        }
+    }
+
+    /**
+     * 应用存档数据
+     */
+    private void applySaveData(SaveManager.GameSaveData data) {
+        // 恢复游戏进度
+        scoreManager.loadData(data.highScore, data.totalCoins, data.currentLevel,
+                data.levelCompleted, data.skinUnlocked, data.infiniteHighScore,
+                data.leaderboard, data.totalDeaths, data.totalRevives,
+                data.totalPowerUps, data.totalCoinsCollected);
+
+        // 恢复装备
+        if (data.selectedSkin >= 0 && data.selectedSkin < skinManager.getSkins().size()) {
+            skinManager.selectSkin(data.selectedSkin);
+            Skin skin = skinManager.getSelectedSkin();
+            bird.image = skin.getImage();
+            bird.images = skin.getAnimationFrames();
+        }
+        if (data.selectedScene >= 0 && data.selectedScene < sceneManager.getScenes().size()) {
+            sceneManager.selectScene(data.selectedScene);
+            backGround = sceneManager.getSelectedScene().getBackground();
+        }
+        if (data.selectedObstacleSkin >= 0 && data.selectedObstacleSkin < obstacleSkinManager.getSkins().size()) {
+            obstacleSkinManager.selectSkin(data.selectedObstacleSkin);
+        }
+
+        // 恢复成就
+        if (data.achievementProgress != null && data.achievementUnlocked != null) {
+            achievementManager.loadData(data.achievementProgress, data.achievementUnlocked);
         }
     }
 

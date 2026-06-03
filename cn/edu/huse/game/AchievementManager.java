@@ -159,4 +159,39 @@ public class AchievementManager {
         }
         return false;
     }
+
+    /**
+     * 获取成就进度数组
+     */
+    public int[] getProgressArray() {
+        int[] progress = new int[achievements.size()];
+        for (int i = 0; i < achievements.size(); i++) {
+            progress[i] = achievements.get(i).getProgress();
+        }
+        return progress;
+    }
+
+    /**
+     * 获取成就解锁状态数组
+     */
+    public boolean[] getUnlockedArray() {
+        boolean[] unlocked = new boolean[achievements.size()];
+        for (int i = 0; i < achievements.size(); i++) {
+            unlocked[i] = achievements.get(i).isUnlocked();
+        }
+        return unlocked;
+    }
+
+    /**
+     * 加载成就数据
+     */
+    public void loadData(int[] progress, boolean[] unlocked) {
+        for (int i = 0; i < Math.min(progress.length, achievements.size()); i++) {
+            achievements.get(i).setProgress(progress[i]);
+            if (unlocked[i]) {
+                achievements.get(i).unlock();
+            }
+        }
+        saveAchievements();
+    }
 }
