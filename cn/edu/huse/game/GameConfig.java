@@ -1,5 +1,8 @@
 package cn.edu.huse.game;
 
+import java.awt.Color;
+import java.awt.Font;
+
 /**
  * 游戏配置常量 - 飞翔小鸟冒险版
  */
@@ -53,4 +56,20 @@ public class GameConfig {
 
     // 粒子系统
     public static final int MAX_PARTICLES = 200;
+
+    // 配色方案
+    public static final Color COLOR_PRIMARY = new Color(26, 26, 46);      // 深蓝
+    public static final Color COLOR_ACCENT = new Color(0, 212, 255);     // 青色
+    public static final Color COLOR_WARNING = new Color(255, 107, 53);   // 橙色
+    public static final Color COLOR_SUCCESS = new Color(0, 255, 136);    // 绿色
+    public static final Color COLOR_TEXT = new Color(255, 255, 255);     // 白色
+    public static final Color COLOR_TEXT_SECONDARY = new Color(180, 180, 200); // 浅灰
+    public static final Color COLOR_BUTTON_HOVER = new Color(255, 255, 255, 50); // 悬停效果
+    public static final Color COLOR_SHADOW = new Color(0, 0, 0, 80);    // 阴影
+
+    // 字体配置
+    public static Font TITLE_FONT = new Font("Microsoft YaHei", Font.BOLD, 48);
+    public static Font SUBTITLE_FONT = new Font("Microsoft YaHei", Font.BOLD, 24);
+    public static Font BODY_FONT = new Font("Microsoft YaHei", Font.PLAIN, 16);
+    public static Font NUMBER_FONT = new Font("Consolas", Font.BOLD, 20);
 }
