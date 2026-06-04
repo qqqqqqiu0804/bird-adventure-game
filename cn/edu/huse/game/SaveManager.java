@@ -58,6 +58,9 @@ public class SaveManager {
         // 成就数据
         public int[] achievementProgress;
         public boolean[] achievementUnlocked;
+
+        // 教程完成状态
+        public boolean tutorialCompleted;
     }
 
     /**
@@ -250,6 +253,9 @@ public class SaveManager {
             }
             writer.println(auSb.toString());
 
+            // 教程完成状态
+            writer.println(data.tutorialCompleted ? "1" : "0");
+
             writer.close();
 
             // 更新槽位信息
@@ -330,6 +336,10 @@ public class SaveManager {
             for (int i = 0; i < auStatus.length(); i++) {
                 data.achievementUnlocked[i] = auStatus.charAt(i) == '1';
             }
+
+            // 教程完成状态
+            String tutorialLine = reader.readLine();
+            data.tutorialCompleted = tutorialLine != null && tutorialLine.trim().equals("1");
 
             reader.close();
 
@@ -565,6 +575,9 @@ public class SaveManager {
                     auSb.append(b ? '1' : '0');
                 }
                 writer.println(auSb.toString());
+
+                // 教程完成状态
+                writer.println(slot.data.tutorialCompleted ? "1" : "0");
             }
 
             writer.close();
@@ -595,6 +608,27 @@ public class SaveManager {
                     break;
                 }
             }
+        }
+    }
+
+    /**
+     * 获取教程完成状态
+     * @return 教程是否已完成
+     */
+    public boolean isTutorialCompleted() {
+        if (currentSlot >= 0 && currentSlot < 3 && slots[currentSlot].data != null) {
+            return slots[currentSlot].data.tutorialCompleted;
+        }
+        return false;
+    }
+
+    /**
+     * 设置教程完成状态
+     * @param completed 完成状态
+     */
+    public void setTutorialCompleted(boolean completed) {
+        if (currentSlot >= 0 && currentSlot < 3 && slots[currentSlot].data != null) {
+            slots[currentSlot].data.tutorialCompleted = completed;
         }
     }
 }
