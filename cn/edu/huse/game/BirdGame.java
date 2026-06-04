@@ -51,6 +51,10 @@ public class BirdGame extends JPanel {
     int achievementScrollOffset = 0;
     int sceneScrollOffset = 0;
 
+    // 按钮悬停检测
+    int hoveredButton = -1;        // 当前悬停按钮索引
+    Point lastMousePosition = null; // 最后鼠标位置
+
     // 生命值系统
     int currentHealth;
     int maxHealth;
@@ -1321,6 +1325,16 @@ public class BirdGame extends JPanel {
         };
         addMouseListener(l);
 
+        // 鼠标移动事件
+        MouseMotionListener motionListener = new MouseMotionAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                lastMousePosition = e.getPoint();
+                updateHoveredButton(e.getX(), e.getY());
+            }
+        };
+        addMouseMotionListener(motionListener);
+
         // 键盘事件
         addKeyListener(new KeyAdapter() {
             @Override
@@ -1890,6 +1904,78 @@ public class BirdGame extends JPanel {
         if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, GameConfig.HEIGHT - 80, 160, 50)) {
             state = GameState.MAIN_MENU;
             soundManager.playClick();
+        }
+    }
+
+    /**
+     * 绘制样式化按钮（带阴影、渐变、悬停效果）
+     */
+    private void drawStyledButton(Graphics g, String text, int x, int y,
+                                   int width, int height, Color color,
+                                   boolean hovered) {
+        Graphics2D g2 = (Graphics2D) g;
+
+        // 阴影
+        g2.setColor(GameConfig.COLOR_SHADOW);
+        g2.fillRoundRect(x + 3, y + 3, width, height, 15, 15);
+
+        // 渐变背景
+        GradientPaint gradient = new GradientPaint(
+            x, y, color.brighter(),
+            x, y + height, color
+        );
+        g2.setPaint(gradient);
+        g2.fillRoundRect(x, y, width, height, 15, 15);
+
+        // 悬停效果
+        if (hovered) {
+            g2.setColor(GameConfig.COLOR_BUTTON_HOVER);
+            g2.fillRoundRect(x, y, width, height, 15, 15);
+        }
+
+        // 边框
+        g2.setColor(Color.WHITE);
+        g2.setStroke(new BasicStroke(2));
+        g2.drawRoundRect(x, y, width, height, 15, 15);
+
+        // 文字（居中，带阴影）
+        g2.setFont(GameConfig.SUBTITLE_FONT);
+        FontMetrics fm = g2.getFontMetrics();
+        int textX = x + (width - fm.stringWidth(text)) / 2;
+        int textY = y + (height + fm.getHeight()) / 2 - 3;
+
+        // 文字阴影
+        g2.setColor(new Color(0, 0, 0, 100));
+        g2.drawString(text, textX + 1, textY + 1);
+
+        // 文字
+        g2.setColor(Color.WHITE);
+        g2.drawString(text, textX, textY);
+
+        // 重置画笔
+        g2.setStroke(new BasicStroke(1));
+        g2.setPaint(null);
+    }
+
+    /**
+     * 更新当前悬停的按钮
+     */
+    private void updateHoveredButton(int mouseX, int mouseY) {
+        hoveredButton = -1;
+
+        switch (state) {
+            case MAIN_MENU:
+                // 检测主菜单按钮
+                if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 150, 160, 38)) hoveredButton = 0;
+                else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 195, 160, 38)) hoveredButton = 1;
+                else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 240, 160, 38)) hoveredButton = 2;
+                else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 285, 160, 38)) hoveredButton = 3;
+                else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 330, 160, 38)) hoveredButton = 4;
+                else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 375, 160, 38)) hoveredButton = 5;
+                else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 420, 160, 38)) hoveredButton = 6;
+                else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 465, 160, 38)) hoveredButton = 7;
+                else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 510, 160, 38)) hoveredButton = 8;
+                break;
         }
     }
 
