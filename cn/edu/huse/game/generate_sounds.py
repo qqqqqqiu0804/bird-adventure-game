@@ -2,6 +2,8 @@
 import struct
 import math
 import os
+import numpy as np
+import wave
 
 SAMPLE_RATE = 22050  # 采样率（较低以减小文件体积）
 
@@ -118,6 +120,114 @@ def make_coin():
     return samples
 
 
+def generate_coin_variant(filename, base_freq=800, variation=0.2):
+    """生成金币音效变体"""
+    sample_rate = 44100
+    duration = 0.1
+    t = np.linspace(0, duration, int(sample_rate * duration), False)
+
+    # 随机频率变化
+    freq = base_freq * (1 + variation * (np.random.random() - 0.5))
+    wave_data = np.sin(2 * np.pi * freq * t) * 0.5
+
+    # 添加衰减
+    envelope = np.exp(-t * 20)
+    wave_data *= envelope
+
+    # 转换为16位整数
+    wave_data = np.int16(wave_data * 32767)
+
+    # 保存为WAV文件
+    with wave.open(filename, 'w') as wav_file:
+        wav_file.setnchannels(1)
+        wav_file.setsampwidth(2)
+        wav_file.setframerate(sample_rate)
+        wav_file.writeframes(wave_data.tobytes())
+
+
+def generate_hover_sound(filename):
+    """生成悬停音效"""
+    sample_rate = 44100
+    duration = 0.05
+    t = np.linspace(0, duration, int(sample_rate * duration), False)
+
+    # 高频短促音
+    wave_data = np.sin(2 * np.pi * 1200 * t) * 0.3
+    envelope = np.exp(-t * 50)
+    wave_data *= envelope
+
+    wave_data = np.int16(wave_data * 32767)
+
+    with wave.open(filename, 'w') as wav_file:
+        wav_file.setnchannels(1)
+        wav_file.setsampwidth(2)
+        wav_file.setframerate(sample_rate)
+        wav_file.writeframes(wave_data.tobytes())
+
+
+def generate_transition_sound(filename):
+    """生成页面切换音效"""
+    sample_rate = 44100
+    duration = 0.3
+    t = np.linspace(0, duration, int(sample_rate * duration), False)
+
+    # 滑音效果
+    freq = 400 + 800 * t / duration
+    wave_data = np.sin(2 * np.pi * freq * t) * 0.4
+    envelope = np.exp(-t * 5)
+    wave_data *= envelope
+
+    wave_data = np.int16(wave_data * 32767)
+
+    with wave.open(filename, 'w') as wav_file:
+        wav_file.setnchannels(1)
+        wav_file.setsampwidth(2)
+        wav_file.setframerate(sample_rate)
+        wav_file.writeframes(wave_data.tobytes())
+
+
+def generate_background_music(filename, theme="default"):
+    """生成背景音乐"""
+    sample_rate = 44100
+    duration = 10.0  # 10秒循环
+    t = np.linspace(0, duration, int(sample_rate * duration), False)
+
+    # 基础旋律
+    if theme == "menu":
+        # 主菜单：轻快旋律
+        freq = 440
+        wave_data = np.sin(2 * np.pi * freq * t) * 0.3
+        wave_data += np.sin(2 * np.pi * freq * 1.5 * t) * 0.2
+        wave_data += np.sin(2 * np.pi * freq * 2 * t) * 0.1
+    elif theme == "game":
+        # 游戏中：节奏感强
+        freq = 330
+        wave_data = np.sin(2 * np.pi * freq * t) * 0.3
+        # 添加节奏
+        beat = np.sin(2 * np.pi * 2 * t) * 0.5 + 0.5
+        wave_data *= beat
+    else:
+        # 游戏结束：舒缓
+        freq = 220
+        wave_data = np.sin(2 * np.pi * freq * t) * 0.3
+        wave_data += np.sin(2 * np.pi * freq * 1.25 * t) * 0.2
+
+    # 添加衰减
+    envelope = np.exp(-t * 0.1)
+    wave_data *= envelope
+
+    # 归一化
+    wave_data = wave_data / np.max(np.abs(wave_data)) * 0.8
+
+    wave_data = np.int16(wave_data * 32767)
+
+    with wave.open(filename, 'w') as wav_file:
+        wav_file.setnchannels(1)
+        wav_file.setsampwidth(2)
+        wav_file.setframerate(sample_rate)
+        wav_file.writeframes(wave_data.tobytes())
+
+
 def main():
     out_dir = os.path.dirname(os.path.abspath(__file__))
     sounds = {
@@ -136,4 +246,23 @@ def main():
 
 
 if __name__ == '__main__':
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+    # 生成原始音效
     main()
+
+    # 生成金币音效变体
+    generate_coin_variant("coin1.wav", 800, 0.2)
+    generate_coin_variant("coin2.wav", 900, 0.3)
+    generate_coin_variant("coin3.wav", 700, 0.15)
+
+    # 生成UI音效
+    generate_hover_sound("hover.wav")
+    generate_transition_sound("transition.wav")
+
+    # 生成背景音乐
+    generate_background_music("menu_music.wav", "menu")
+    generate_background_music("game_music.wav", "game")
+    generate_background_music("gameover_music.wav", "gameover")
+
+    print("音效和音乐文件生成完成！")
