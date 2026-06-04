@@ -1,7 +1,7 @@
 package cn.edu.huse.game;
 
 import javax.sound.sampled.*;
-import java.io.File;
+import java.io.InputStream;
 
 /**
  * 音效管理类 - 飞翔小鸟冒险版
@@ -56,8 +56,9 @@ public class SoundManager {
      */
     private Clip loadClip(String filename) {
         try {
-            File file = new File(getClass().getResource(filename).toURI());
-            AudioInputStream ais = AudioSystem.getAudioInputStream(file);
+            InputStream is = getClass().getResourceAsStream(filename);
+            if (is == null) return null;
+            AudioInputStream ais = AudioSystem.getAudioInputStream(is);
             Clip clip = AudioSystem.getClip();
             clip.open(ais);
             return clip;

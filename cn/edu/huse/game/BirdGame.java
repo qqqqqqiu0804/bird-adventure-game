@@ -105,12 +105,18 @@ public class BirdGame extends JPanel {
         musicManager = new MusicManager();
         tutorialManager = new TutorialManager();
 
+        // 加载菜单背景音乐
+        musicManager.loadMusic("menu_music.wav");
+
         // 加载教程完成状态
         tutorialManager.setCompleted(saveManager.isTutorialCompleted());
 
         // 检查是否首次启动
         if (tutorialManager.isFirstLaunch()) {
             showTutorial = true;
+        } else {
+            // 非首次启动，直接播放菜单音乐
+            musicManager.play();
         }
 
         // 初始化生命值
@@ -692,23 +698,23 @@ public class BirdGame extends JPanel {
         g.setColor(new Color(0, 0, 0, 150));
         g.fillRect(0, 0, GameConfig.WIDTH, GameConfig.HEIGHT);
 
-        // 标题
+        // 标题（调整位置避免与按钮重叠）
         g.setFont(titleFont);
         g.setColor(Color.WHITE);
-        g.drawString("飞翔小鸟", GameConfig.WIDTH / 2 - 100, 100);
+        g.drawString("飞翔小鸟", GameConfig.WIDTH / 2 - 100, 80);
         g.setFont(levelFont);
-        g.drawString("冒险版", GameConfig.WIDTH / 2 - 30, 150);
+        g.drawString("冒险版", GameConfig.WIDTH / 2 - 30, 120);
 
-        // 按钮
-        drawButton(g, "开始游戏", GameConfig.WIDTH / 2 - 80, 150, 160, 38, Color.GREEN);
-        drawButton(g, "关卡选择", GameConfig.WIDTH / 2 - 80, 195, 160, 38, Color.BLUE);
-        drawButton(g, "皮肤选择", GameConfig.WIDTH / 2 - 80, 240, 160, 38, Color.ORANGE);
-        drawButton(g, "场景选择", GameConfig.WIDTH / 2 - 80, 285, 160, 38, Color.CYAN);
-        drawButton(g, "障碍物皮肤", GameConfig.WIDTH / 2 - 80, 330, 160, 38, new Color(139, 90, 43));
-        drawButton(g, "升级系统", GameConfig.WIDTH / 2 - 80, 375, 160, 38, Color.YELLOW);
-        drawButton(g, "成就系统", GameConfig.WIDTH / 2 - 80, 420, 160, 38, Color.MAGENTA);
-        drawButton(g, "排行榜", GameConfig.WIDTH / 2 - 80, 465, 160, 38, new Color(255, 200, 0));
-        drawButton(g, "设置", GameConfig.WIDTH / 2 - 80, 510, 160, 38, Color.GRAY);
+        // 按钮（使用悬停效果）
+        drawButton(g, "开始游戏", GameConfig.WIDTH / 2 - 80, 150, 160, 38, Color.GREEN, hoveredButton == 0);
+        drawButton(g, "关卡选择", GameConfig.WIDTH / 2 - 80, 195, 160, 38, Color.BLUE, hoveredButton == 1);
+        drawButton(g, "皮肤选择", GameConfig.WIDTH / 2 - 80, 240, 160, 38, Color.ORANGE, hoveredButton == 2);
+        drawButton(g, "场景选择", GameConfig.WIDTH / 2 - 80, 285, 160, 38, Color.CYAN, hoveredButton == 3);
+        drawButton(g, "障碍物皮肤", GameConfig.WIDTH / 2 - 80, 330, 160, 38, new Color(139, 90, 43), hoveredButton == 4);
+        drawButton(g, "升级系统", GameConfig.WIDTH / 2 - 80, 375, 160, 38, Color.YELLOW, hoveredButton == 5);
+        drawButton(g, "成就系统", GameConfig.WIDTH / 2 - 80, 420, 160, 38, Color.MAGENTA, hoveredButton == 6);
+        drawButton(g, "排行榜", GameConfig.WIDTH / 2 - 80, 465, 160, 38, new Color(255, 200, 0), hoveredButton == 7);
+        drawButton(g, "设置", GameConfig.WIDTH / 2 - 80, 510, 160, 38, Color.GRAY, hoveredButton == 8);
 
         // 无限模式按钮（通关后显示）
         if (scoreManager.areAllLevelsCompleted()) {
@@ -1317,13 +1323,34 @@ public class BirdGame extends JPanel {
      * 绘制按钮
      */
     private void drawButton(Graphics g, String text, int x, int y, int width, int height, Color color) {
+        drawButton(g, text, x, y, width, height, color, false);
+    }
+
+    /**
+     * 绘制按钮（支持悬停效果）
+     */
+    private void drawButton(Graphics g, String text, int x, int y, int width, int height, Color color, boolean hovered) {
+        // 悬停时按钮变亮
+        if (hovered) {
+            g.setColor(new Color(255, 255, 255, 40));
+            g.fillRoundRect(x, y, width, height, 10, 10);
+        }
+
         // 按钮背景
         g.setColor(color);
         g.fillRoundRect(x, y, width, height, 10, 10);
 
-        // 按钮边框
-        g.setColor(Color.WHITE);
-        g.drawRoundRect(x, y, width, height, 10, 10);
+        // 按钮边框（悬停时加粗高亮）
+        if (hovered) {
+            g.setColor(GameConfig.COLOR_ACCENT);
+            Graphics2D g2 = (Graphics2D) g;
+            g2.setStroke(new BasicStroke(2));
+            g2.drawRoundRect(x, y, width, height, 10, 10);
+            g2.setStroke(new BasicStroke(1));
+        } else {
+            g.setColor(Color.WHITE);
+            g.drawRoundRect(x, y, width, height, 10, 10);
+        }
 
         // 按钮文字
         g.setFont(buttonFont);
@@ -1443,6 +1470,8 @@ public class BirdGame extends JPanel {
                     showTutorial = false;
                     saveManager.setTutorialCompleted(true);
                     saveManager.saveSettings();
+                    // 教程完成后播放菜单音乐
+                    musicManager.play();
                 }
                 return;
             }
@@ -1471,6 +1500,8 @@ public class BirdGame extends JPanel {
                 state = GameState.RUNNING;
                 bird.fly();
                 soundManager.playClick();
+                // 切换到游戏背景音乐
+                musicManager.switchTrack("game_music.wav");
                 break;
             case RUNNING:
             case INFINITE:
@@ -1483,6 +1514,8 @@ public class BirdGame extends JPanel {
                     state = GameState.MAIN_MENU;
                     wasInfiniteMode = false;
                     soundManager.playClick();
+                    // 切换回菜单背景音乐
+                    musicManager.switchTrack("menu_music.wav");
                 }
                 // 检查是否点击了复活选项（扩大点击区域）
                 else if (mouseY >= 385 && mouseY <= 415) {
@@ -1508,6 +1541,7 @@ public class BirdGame extends JPanel {
                 if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 480, 160, 40)) {
                     state = GameState.MAIN_MENU;
                     soundManager.playClick();
+                    musicManager.switchTrack("menu_music.wav");
                 } else {
                     handleReviveConfirm();
                 }
@@ -1588,6 +1622,8 @@ public class BirdGame extends JPanel {
             currentLevel = new Level(GameConfig.TOTAL_LEVELS);
             resetGameObjects();
             soundManager.playClick();
+            // 切换到游戏背景音乐
+            musicManager.switchTrack("game_music.wav");
         }
         // 作弊模式按钮（右下角上移）
         else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH - 50, GameConfig.HEIGHT - 100, 40, 40)) {
@@ -2012,6 +2048,20 @@ public class BirdGame extends JPanel {
                 else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 420, 160, 38)) hoveredButton = 6;
                 else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 465, 160, 38)) hoveredButton = 7;
                 else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 510, 160, 38)) hoveredButton = 8;
+                else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH - 50, GameConfig.HEIGHT - 100, 40, 40)) hoveredButton = 9;
+                break;
+            case LEVEL_SELECT:
+                // 检测关卡选择按钮
+                for (int i = 0; i < GameConfig.TOTAL_LEVELS; i++) {
+                    int col = i % 5;
+                    int row = i / 5;
+                    int x = 50 + col * 105;
+                    int y = 100 + row * 70;
+                    if (isButtonClick(mouseX, mouseY, x, y, 90, 55)) {
+                        hoveredButton = i;
+                        break;
+                    }
+                }
                 break;
         }
     }

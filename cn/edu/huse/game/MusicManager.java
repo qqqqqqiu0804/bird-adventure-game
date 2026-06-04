@@ -1,7 +1,7 @@
 package cn.edu.huse.game;
 
 import javax.sound.sampled.*;
-import java.io.File;
+import java.io.InputStream;
 
 /**
  * 背景音乐管理器 - 飞翔小鸟冒险版
@@ -31,10 +31,12 @@ public class MusicManager {
             // 如果正在播放，先停止
             if (currentClip != null) {
                 stop();
+                currentClip.close();
             }
 
-            File file = new File(getClass().getResource(filename).toURI());
-            AudioInputStream ais = AudioSystem.getAudioInputStream(file);
+            InputStream is = getClass().getResourceAsStream(filename);
+            if (is == null) return;
+            AudioInputStream ais = AudioSystem.getAudioInputStream(is);
             currentClip = AudioSystem.getClip();
             currentClip.open(ais);
             currentTrack = filename;
