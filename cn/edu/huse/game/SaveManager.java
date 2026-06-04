@@ -631,4 +631,36 @@ public class SaveManager {
             slots[currentSlot].data.tutorialCompleted = completed;
         }
     }
+
+    /**
+     * 保存设置（持久化当前槽位数据）
+     */
+    public void saveSettings() {
+        if (currentSlot >= 0 && currentSlot < 3 && !slots[currentSlot].isEmpty) {
+            saveSlotData(currentSlot);
+        }
+    }
+
+    /**
+     * 保存槽位数据到文件（内部方法）
+     * @param slotIndex 槽位索引
+     */
+    private void saveSlotData(int slotIndex) {
+        String filePath = getSlotFilePath(slotIndex);
+        File dir = new File(SAVE_DIR);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+
+        try {
+            java.io.PrintWriter writer = new java.io.PrintWriter(new java.io.FileWriter(filePath));
+            SaveSlot slot = slots[slotIndex];
+            writer.println(slot.name);
+            writer.println(slot.timestamp);
+            writer.println(slot.data.tutorialCompleted ? "1" : "0");
+            writer.close();
+        } catch (Exception e) {
+            // 保存失败静默处理
+        }
+    }
 }

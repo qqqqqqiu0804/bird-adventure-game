@@ -37,6 +37,10 @@ public class BirdGame extends JPanel {
     ObstacleSkinManager obstacleSkinManager;  // 障碍物皮肤管理器
     SaveManager saveManager;                  // 存档管理器
     SettingsManager settingsManager;          // 设置管理器
+    MusicManager musicManager;                // 背景音乐管理器
+    TutorialManager tutorialManager;          // 教程管理器
+    int screenAlpha = 0;                      // 屏幕透明度（用于淡入淡出）
+    boolean showTutorial = false;             // 是否显示教程
 
     // 缓存字体
     Font scoreFont = new Font(Font.SANS_SERIF, Font.BOLD, 30);
@@ -97,6 +101,18 @@ public class BirdGame extends JPanel {
         settingsManager = new SettingsManager();
         soundManager = new SoundManager(settingsManager);  // 传递设置管理器
 
+        // 初始化新管理器
+        musicManager = new MusicManager();
+        tutorialManager = new TutorialManager();
+
+        // 加载教程完成状态
+        tutorialManager.setCompleted(saveManager.isTutorialCompleted());
+
+        // 检查是否首次启动
+        if (tutorialManager.isFirstLaunch()) {
+            showTutorial = true;
+        }
+
         // 初始化生命值
         maxHealth = upgradeSystem.getMaxHealth();
         currentHealth = maxHealth;
@@ -125,6 +141,12 @@ public class BirdGame extends JPanel {
 
         // 绘制背景
         g.drawImage(backGround, 0, 0, null);
+
+        // 绘制教程（在所有界面之上）
+        if (showTutorial && !tutorialManager.isCompleted()) {
+            tutorialManager.showTutorial(g);
+            return; // 教程显示时，不绘制其他内容
+        }
 
         // 根据游戏状态绘制界面
         switch (state) {
@@ -179,6 +201,9 @@ public class BirdGame extends JPanel {
                 drawSettings(g);
                 break;
         }
+
+        // 绘制淡入淡出效果
+        drawFadeEffect(g);
     }
 
     /**
@@ -1411,6 +1436,18 @@ public class BirdGame extends JPanel {
         int mouseX = mousePoint.x;
         int mouseY = mousePoint.y;
 
+        // 处理教程点击
+        if (showTutorial && !tutorialManager.isCompleted()) {
+            if (tutorialManager.handleClick(mouseX, mouseY)) {
+                if (tutorialManager.isCompleted()) {
+                    showTutorial = false;
+                    saveManager.setTutorialCompleted(true);
+                    saveManager.saveSettings();
+                }
+                return;
+            }
+        }
+
         switch (state) {
             case MAIN_MENU:
                 handleMainMenuClick(mouseX, mouseY);
@@ -2499,5 +2536,52 @@ public class BirdGame extends JPanel {
         powerUps.clear();
         // 重置生命值
         currentHealth = maxHealth;
+    }
+
+    /**
+     * 绘制淡入淡出效果
+     */
+    private void drawFadeEffect(Graphics g) {
+        if (screenAlpha > 0) {
+            Graphics2D g2 = (Graphics2D) g;
+            g2.setColor(new Color(0, 0, 0, screenAlpha));
+            g2.fillRect(0, 0, GameConfig.WIDTH, GameConfig.HEIGHT);
+        }
+    }
+
+    /**
+     * 开始淡入效果
+     */
+    private void startFadeIn() {
+        screenAlpha = 255;
+        new Thread(() -> {
+            while (screenAlpha > 0) {
+                screenAlpha = AnimationUtils.fadeOut(screenAlpha, 0, 10);
+                try {
+                    Thread.sleep(16); // 约60FPS
+                } catch (InterruptedException e) {
+                    break;
+                }
+            }
+            screenAlpha = 0;
+        }).start();
+    }
+
+    /**
+     * 开始淡出效果
+     */
+    private void startFadeOut() {
+        screenAlpha = 0;
+        new Thread(() -> {
+            while (screenAlpha < 255) {
+                screenAlpha = AnimationUtils.fadeIn(screenAlpha, 255, 10);
+                try {
+                    Thread.sleep(16); // 约60FPS
+                } catch (InterruptedException e) {
+                    break;
+                }
+            }
+            screenAlpha = 255;
+        }).start();
     }
 }
