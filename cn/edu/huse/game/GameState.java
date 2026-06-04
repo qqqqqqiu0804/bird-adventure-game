@@ -21,5 +21,6 @@ public enum GameState {
     INFINITE,       // 无限模式
     LEADERBOARD,    // 排行榜
     OBSTACLE_SKIN,  // 障碍物皮肤选择
-    SETTINGS        // 设置界面
+    SETTINGS,       // 设置界面
+    HELP            // 帮助/操作说明
 }

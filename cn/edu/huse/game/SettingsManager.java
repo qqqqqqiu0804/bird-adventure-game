@@ -10,6 +10,7 @@ public class SettingsManager {
     private static final String SETTINGS_DIR = System.getProperty("user.home") + "/.bird_adventure";
     private static final String SETTINGS_FILE = SETTINGS_DIR + "/settings.dat";
 
+    private int musicVolume;    // 背景音乐音量 0-100
     private int sfxVolume;      // 音效音量 0-100
     private boolean dirty;      // 是否需要保存
 
@@ -17,6 +18,7 @@ public class SettingsManager {
      * 构造方法
      */
     public SettingsManager() {
+        musicVolume = 60;
         sfxVolume = 60;
         dirty = false;
         loadSettings();
@@ -34,13 +36,16 @@ public class SettingsManager {
             }
 
             BufferedReader reader = new BufferedReader(new FileReader(file));
+            musicVolume = Integer.parseInt(reader.readLine().trim());
             sfxVolume = Integer.parseInt(reader.readLine().trim());
             reader.close();
 
             // 确保值在有效范围内
+            musicVolume = Math.max(0, Math.min(100, musicVolume));
             sfxVolume = Math.max(0, Math.min(100, sfxVolume));
         } catch (Exception e) {
             // 使用默认值
+            musicVolume = 60;
             sfxVolume = 60;
         }
     }
@@ -56,6 +61,7 @@ public class SettingsManager {
             if (!dir.exists()) dir.mkdirs();
 
             PrintWriter writer = new PrintWriter(new FileWriter(SETTINGS_FILE));
+            writer.println(musicVolume);
             writer.println(sfxVolume);
             writer.close();
 
@@ -63,6 +69,22 @@ public class SettingsManager {
         } catch (Exception e) {
             // 静默处理
         }
+    }
+
+    /**
+     * 获取背景音乐音量
+     */
+    public int getMusicVolume() {
+        return musicVolume;
+    }
+
+    /**
+     * 设置背景音乐音量
+     */
+    public void setMusicVolume(int volume) {
+        this.musicVolume = Math.max(0, Math.min(100, volume));
+        dirty = true;
+        saveSettings();
     }
 
     /**
@@ -104,6 +126,7 @@ public class SettingsManager {
         }
 
         // 重置设置
+        musicVolume = 60;
         sfxVolume = 60;
         dirty = true;
         saveSettings();

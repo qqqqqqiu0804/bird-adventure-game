@@ -187,37 +187,101 @@ def generate_transition_sound(filename):
 
 
 def generate_background_music(filename, theme="default"):
-    """生成背景音乐"""
+    """生成背景音乐 - 优化版"""
     sample_rate = 44100
-    duration = 10.0  # 10秒循环
+    duration = 16.0  # 16秒循环，更长更丰富
     t = np.linspace(0, duration, int(sample_rate * duration), False)
 
-    # 基础旋律
-    if theme == "menu":
-        # 主菜单：轻快旋律
-        freq = 440
-        wave_data = np.sin(2 * np.pi * freq * t) * 0.3
-        wave_data += np.sin(2 * np.pi * freq * 1.5 * t) * 0.2
-        wave_data += np.sin(2 * np.pi * freq * 2 * t) * 0.1
-    elif theme == "game":
-        # 游戏中：节奏感强
-        freq = 330
-        wave_data = np.sin(2 * np.pi * freq * t) * 0.3
-        # 添加节奏
-        beat = np.sin(2 * np.pi * 2 * t) * 0.5 + 0.5
-        wave_data *= beat
-    else:
-        # 游戏结束：舒缓
-        freq = 220
-        wave_data = np.sin(2 * np.pi * freq * t) * 0.3
-        wave_data += np.sin(2 * np.pi * freq * 1.25 * t) * 0.2
+    wave_data = np.zeros_like(t)
 
-    # 添加衰减
-    envelope = np.exp(-t * 0.1)
-    wave_data *= envelope
+    if theme == "menu":
+        # 主菜单：轻快的电子风格
+        # 使用 C大调和弦进行：C - Am - F - G
+        chord_progression = [
+            (261.63, [1, 1.25, 1.5]),    # C: C E G
+            (220.00, [1, 1.2, 1.5]),     # Am: A C E
+            (174.61, [1, 1.25, 1.5]),    # F: F A C
+            (196.00, [1, 1.25, 1.5]),    # G: G B D
+        ]
+
+        chord_duration = duration / len(chord_progression)
+
+        for i, (base_freq, ratios) in enumerate(chord_progression):
+            start = int(i * chord_duration * sample_rate)
+            end = int((i + 1) * chord_duration * sample_rate)
+            t_chord = t[start:end] - t[start]
+
+            # 和弦音
+            for ratio in ratios:
+                freq = base_freq * ratio
+                amp = 0.15 * np.exp(-t_chord * 0.5)
+                wave_data[start:end] += amp * np.sin(2 * np.pi * freq * t_chord)
+
+            # 旋律音（高八度的简单旋律）
+            melody_freqs = [base_freq * 2, base_freq * 2.5, base_freq * 3]
+            for j, mf in enumerate(melody_freqs):
+                t_note = t_chord[j*len(t_chord)//3:(j+1)*len(t_chord)//3]
+                amp = 0.1 * np.exp(-t_note * 1)
+                wave_data[start + j*len(t_chord)//3:start + (j+1)*len(t_chord)//3] += \
+                    amp * np.sin(2 * np.pi * mf * t_note)
+
+    elif theme == "game":
+        # 游戏中：节奏感强，有驱动感
+        # 使用 Am - F - C - G 进行
+        bpm = 120
+        beat_duration = 60.0 / bpm
+        beats_per_measure = 4
+
+        # 低音贝斯线
+        bass_notes = [110, 87.31, 130.81, 98]  # A F C G
+        for i, freq in enumerate(bass_notes):
+            start = int(i * beat_duration * beats_per_measure * sample_rate)
+            end = int((i + 1) * beat_duration * beats_per_measure * sample_rate)
+            t_note = t[start:end] - t[start]
+
+            # 贝斯音
+            amp = 0.2 * np.exp(-t_note * 2)
+            wave_data[start:end] += amp * np.sin(2 * np.pi * freq * t_note)
+
+            # 节奏鼓点
+            for beat in range(beats_per_measure):
+                beat_start = start + int(beat * beat_duration * sample_rate)
+                beat_end = min(beat_start + int(0.1 * sample_rate), end)
+                t_beat = np.arange(beat_end - beat_start) / sample_rate
+                kick = 0.15 * np.exp(-t_beat * 30) * np.sin(2 * np.pi * 60 * t_beat)
+                wave_data[beat_start:beat_end] += kick
+
+    else:
+        # 游戏结束：舒缓的钢琴风格
+        # 使用缓慢的和弦进行
+        notes = [
+            (261.63, 0.3),  # C4
+            (329.63, 0.25), # E4
+            (392.00, 0.2),  # G4
+            (523.25, 0.15), # C5
+            (392.00, 0.2),  # G4
+            (329.63, 0.25), # E4
+        ]
+
+        note_duration = duration / len(notes)
+
+        for i, (freq, amp) in enumerate(notes):
+            start = int(i * note_duration * sample_rate)
+            end = int((i + 1) * note_duration * sample_rate)
+            t_note = t[start:end] - t[start]
+
+            # 钢琴音色（基音+泛音）
+            envelope = amp * np.exp(-t_note * 1.5) * (1 - np.exp(-t_note * 20))
+            wave_data[start:end] += envelope * (
+                np.sin(2 * np.pi * freq * t_note) +
+                0.5 * np.sin(2 * np.pi * freq * 2 * t_note) +
+                0.25 * np.sin(2 * np.pi * freq * 3 * t_note)
+            )
 
     # 归一化
-    wave_data = wave_data / np.max(np.abs(wave_data)) * 0.8
+    max_val = np.max(np.abs(wave_data))
+    if max_val > 0:
+        wave_data = wave_data / max_val * 0.7
 
     wave_data = np.int16(wave_data * 32767)
 

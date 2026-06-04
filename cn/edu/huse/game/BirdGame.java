@@ -136,6 +136,8 @@ public class BirdGame extends JPanel {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
         game.action();
+        // 请求焦点以接收键盘事件
+        game.requestFocusInWindow();
     }
 
     /**
@@ -205,6 +207,9 @@ public class BirdGame extends JPanel {
                 break;
             case SETTINGS:
                 drawSettings(g);
+                break;
+            case HELP:
+                drawHelp(g);
                 break;
         }
 
@@ -715,13 +720,14 @@ public class BirdGame extends JPanel {
         drawButton(g, "成就系统", GameConfig.WIDTH / 2 - 80, 420, 160, 38, Color.MAGENTA, hoveredButton == 6);
         drawButton(g, "排行榜", GameConfig.WIDTH / 2 - 80, 465, 160, 38, new Color(255, 200, 0), hoveredButton == 7);
         drawButton(g, "设置", GameConfig.WIDTH / 2 - 80, 510, 160, 38, Color.GRAY, hoveredButton == 8);
+        drawButton(g, "帮助", GameConfig.WIDTH / 2 - 80, 555, 160, 38, new Color(100, 200, 255), hoveredButton == 9);
 
         // 无限模式按钮（通关后显示）
         if (scoreManager.areAllLevelsCompleted()) {
-            drawButton(g, "无限模式", GameConfig.WIDTH / 2 - 80, 555, 160, 38, new Color(255, 100, 0));
-            drawButton(g, "退出游戏", GameConfig.WIDTH / 2 - 80, 600, 160, 38, Color.RED);
+            drawButton(g, "无限模式", GameConfig.WIDTH / 2 - 80, 600, 160, 38, new Color(255, 100, 0));
+            drawButton(g, "退出游戏", GameConfig.WIDTH / 2 - 80, 645, 160, 38, Color.RED);
         } else {
-            drawButton(g, "退出游戏", GameConfig.WIDTH / 2 - 80, 555, 160, 38, Color.RED);
+            drawButton(g, "退出游戏", GameConfig.WIDTH / 2 - 80, 600, 160, 38, Color.RED);
         }
 
         // 作弊模式按钮（右下角上移）
@@ -898,36 +904,115 @@ public class BirdGame extends JPanel {
         g.setColor(Color.WHITE);
         g.drawString("音量设置", 50, 150);
 
-        // 音效音量条
+        // 背景音乐音量条
         g.setFont(smallFont);
         g.setColor(Color.WHITE);
-        g.drawString("音效", 50, 190);
-        drawVolumeBar(g, 180, 175, 300, 25, settingsManager.getSfxVolume());
+        g.drawString("背景音乐", 50, 190);
+        drawVolumeBar(g, 180, 175, 300, 25, settingsManager.getMusicVolume());
+
+        // 音效音量条
+        g.setColor(Color.WHITE);
+        g.drawString("音效", 50, 230);
+        drawVolumeBar(g, 180, 215, 300, 25, settingsManager.getSfxVolume());
 
         // 存档管理区域
         g.setFont(levelFont);
         g.setColor(Color.WHITE);
-        g.drawString("存档管理", 50, 260);
+        g.drawString("存档管理", 50, 300);
 
         // 绘制3个存档槽位
         for (int i = 0; i < 3; i++) {
-            drawSaveSlot(g, 50, 280 + i * 70, i);
+            drawSaveSlot(g, 50, 320 + i * 70, i);
         }
 
         // 导入导出按钮
-        drawButton(g, "导入存档", 50, 500, 120, 35, Color.BLUE);
-        drawButton(g, "导出存档", 200, 500, 120, 35, Color.CYAN);
+        drawButton(g, "导入存档", 50, 540, 120, 35, Color.BLUE);
+        drawButton(g, "导出存档", 200, 540, 120, 35, Color.CYAN);
 
         // 数据管理区域
         g.setFont(levelFont);
         g.setColor(Color.WHITE);
-        g.drawString("数据管理", 50, 570);
+        g.drawString("数据管理", 50, 610);
 
         // 重置金币按钮
-        drawButton(g, "重置金币", 50, 600, 120, 35, Color.ORANGE);
+        drawButton(g, "重置金币", 50, 640, 120, 35, Color.ORANGE);
 
         // 恢复出厂设置按钮
-        drawButton(g, "恢复出厂设置", 200, 600, 150, 35, Color.RED);
+        drawButton(g, "恢复出厂设置", 200, 640, 150, 35, Color.RED);
+
+        // 返回按钮
+        drawButton(g, "返回主菜单", GameConfig.WIDTH / 2 - 80, GameConfig.HEIGHT - 80, 160, 50, Color.RED);
+    }
+
+    /**
+     * 绘制帮助界面
+     */
+    private void drawHelp(Graphics g) {
+        g.setColor(new Color(0, 0, 0, 150));
+        g.fillRect(0, 0, GameConfig.WIDTH, GameConfig.HEIGHT);
+
+        // 标题
+        g.setFont(titleFont);
+        g.setColor(GameConfig.COLOR_ACCENT);
+        g.drawString("操作说明", GameConfig.WIDTH / 2 - 100, 80);
+
+        // 操作说明内容
+        int startY = 140;
+        int lineHeight = 45;
+
+        g.setFont(levelFont);
+
+        // 空格键
+        g.setColor(GameConfig.COLOR_SUCCESS);
+        g.drawString("空格键", 80, startY);
+        g.setColor(Color.WHITE);
+        g.setFont(smallFont);
+        g.drawString("让小鸟飞翔 / 开始游戏 / 暂停继续", 200, startY);
+
+        // 鼠标点击
+        g.setFont(levelFont);
+        g.setColor(GameConfig.COLOR_SUCCESS);
+        g.drawString("鼠标左键", 80, startY + lineHeight);
+        g.setColor(Color.WHITE);
+        g.setFont(smallFont);
+        g.drawString("点击屏幕让小鸟飞翔", 200, startY + lineHeight);
+
+        // P键
+        g.setFont(levelFont);
+        g.setColor(GameConfig.COLOR_SUCCESS);
+        g.drawString("P 键", 80, startY + lineHeight * 2);
+        g.setColor(Color.WHITE);
+        g.setFont(smallFont);
+        g.drawString("暂停游戏 / 继续游戏", 200, startY + lineHeight * 2);
+
+        // ESC键
+        g.setFont(levelFont);
+        g.setColor(GameConfig.COLOR_SUCCESS);
+        g.drawString("ESC 键", 80, startY + lineHeight * 3);
+        g.setColor(Color.WHITE);
+        g.setFont(smallFont);
+        g.drawString("跳过教程", 200, startY + lineHeight * 3);
+
+        // `键
+        g.setFont(levelFont);
+        g.setColor(GameConfig.COLOR_SUCCESS);
+        g.drawString("` 键", 80, startY + lineHeight * 4);
+        g.setColor(Color.WHITE);
+        g.setFont(smallFont);
+        g.drawString("打开作弊控制台", 200, startY + lineHeight * 4);
+
+        // 游戏提示
+        startY = startY + lineHeight * 5 + 20;
+        g.setFont(levelFont);
+        g.setColor(GameConfig.COLOR_WARNING);
+        g.drawString("游戏提示", 80, startY);
+
+        g.setFont(smallFont);
+        g.setColor(Color.WHITE);
+        g.drawString("• 收集金币可以解锁皮肤和场景", 100, startY + 35);
+        g.drawString("• 通过障碍物获得分数", 100, startY + 60);
+        g.drawString("• 使用道具可以帮助你更好地通关", 100, startY + 85);
+        g.drawString("• 完成所有关卡解锁无限模式", 100, startY + 110);
 
         // 返回按钮
         drawButton(g, "返回主菜单", GameConfig.WIDTH / 2 - 80, GameConfig.HEIGHT - 80, 160, 50, Color.RED);
@@ -1372,6 +1457,7 @@ public class BirdGame extends JPanel {
         MouseListener l = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
+                requestFocusInWindow();  // 点击时请求焦点
                 handleClick();
             }
         };
@@ -1391,6 +1477,30 @@ public class BirdGame extends JPanel {
         addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
+                // 教程显示时的键盘处理
+                if (showTutorial && !tutorialManager.isCompleted()) {
+                    if (e.getKeyCode() == KeyEvent.VK_SPACE || e.getKeyCode() == KeyEvent.VK_ENTER) {
+                        tutorialManager.nextStep();
+                        if (tutorialManager.isCompleted()) {
+                            showTutorial = false;
+                            saveManager.setTutorialCompleted(true);
+                            saveManager.saveSettings();
+                            // 教程完成后播放音乐
+                            musicManager.loadMusic("menu_music.wav");
+                            musicManager.play();
+                        }
+                    } else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                        tutorialManager.skipTutorial();
+                        showTutorial = false;
+                        saveManager.setTutorialCompleted(true);
+                        saveManager.saveSettings();
+                        // 教程完成后播放音乐
+                        musicManager.loadMusic("menu_music.wav");
+                        musicManager.play();
+                    }
+                    return;
+                }
+
                 // 作弊控制台开关
                 if (e.getKeyCode() == KeyEvent.VK_BACK_QUOTE) {  // ` 键
                     showCheatConsole = !showCheatConsole;
@@ -1562,6 +1672,9 @@ public class BirdGame extends JPanel {
             case SETTINGS:
                 handleSettingsClick(mouseX, mouseY);
                 break;
+            case HELP:
+                handleHelpClick(mouseX, mouseY);
+                break;
         }
     }
 
@@ -1616,8 +1729,13 @@ public class BirdGame extends JPanel {
             state = GameState.SETTINGS;
             soundManager.playClick();
         }
+        // 帮助按钮
+        else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 555, 160, 38)) {
+            state = GameState.HELP;
+            soundManager.playClick();
+        }
         // 无限模式按钮（通关后可用）
-        else if (scoreManager.areAllLevelsCompleted() && isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 555, 160, 38)) {
+        else if (scoreManager.areAllLevelsCompleted() && isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 600, 160, 38)) {
             state = GameState.INFINITE;
             currentLevel = new Level(GameConfig.TOTAL_LEVELS);
             resetGameObjects();
@@ -1654,7 +1772,7 @@ public class BirdGame extends JPanel {
             soundManager.playClick();
         }
         // 退出游戏按钮
-        else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, scoreManager.areAllLevelsCompleted() ? 620 : 560, 160, 40)) {
+        else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, scoreManager.areAllLevelsCompleted() ? 645 : 600, 160, 40)) {
             System.exit(0);
         }
     }
@@ -1782,21 +1900,44 @@ public class BirdGame extends JPanel {
     }
 
     /**
+     * 处理帮助界面点击
+     */
+    private void handleHelpClick(int mouseX, int mouseY) {
+        // 返回按钮
+        if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, GameConfig.HEIGHT - 80, 160, 50)) {
+            state = GameState.MAIN_MENU;
+            soundManager.playClick();
+        }
+    }
+
+    /**
      * 处理设置界面点击
      */
     private void handleSettingsClick(int mouseX, int mouseY) {
-        // 音量控制 - 音效
+        // 音量控制 - 背景音乐
         if (isButtonClick(mouseX, mouseY, 150, 175, 25, 25)) {
-            settingsManager.setSfxVolume(Math.max(0, settingsManager.getSfxVolume() - 10));
+            int newVolume = Math.max(0, settingsManager.getMusicVolume() - 10);
+            settingsManager.setMusicVolume(newVolume);
+            musicManager.setVolume(newVolume);
             soundManager.playClick();
         } else if (isButtonClick(mouseX, mouseY, 520, 175, 25, 25)) {
+            int newVolume = Math.min(100, settingsManager.getMusicVolume() + 10);
+            settingsManager.setMusicVolume(newVolume);
+            musicManager.setVolume(newVolume);
+            soundManager.playClick();
+        }
+        // 音量控制 - 音效
+        else if (isButtonClick(mouseX, mouseY, 150, 215, 25, 25)) {
+            settingsManager.setSfxVolume(Math.max(0, settingsManager.getSfxVolume() - 10));
+            soundManager.playClick();
+        } else if (isButtonClick(mouseX, mouseY, 520, 215, 25, 25)) {
             settingsManager.setSfxVolume(Math.min(100, settingsManager.getSfxVolume() + 10));
             soundManager.playClick();
         }
         // 存档槽位操作
         else {
             for (int i = 0; i < 3; i++) {
-                int slotY = 280 + i * 70;
+                int slotY = 320 + i * 70;
                 SaveManager.SaveSlot slot = saveManager.getSlotInfo(i);
 
                 if (slot.isEmpty) {
@@ -2048,7 +2189,8 @@ public class BirdGame extends JPanel {
                 else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 420, 160, 38)) hoveredButton = 6;
                 else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 465, 160, 38)) hoveredButton = 7;
                 else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 510, 160, 38)) hoveredButton = 8;
-                else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH - 50, GameConfig.HEIGHT - 100, 40, 40)) hoveredButton = 9;
+                else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, 555, 160, 38)) hoveredButton = 9;
+                else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH - 50, GameConfig.HEIGHT - 100, 40, 40)) hoveredButton = 10;
                 break;
             case LEVEL_SELECT:
                 // 检测关卡选择按钮
@@ -2079,14 +2221,29 @@ public class BirdGame extends JPanel {
      */
     private void handleSpaceKey() {
         switch (state) {
+            case START:
+                state = GameState.RUNNING;
+                bird.fly();
+                soundManager.playClick();
+                // 切换到游戏背景音乐
+                musicManager.switchTrack("game_music.wav");
+                break;
+            case RUNNING:
+            case INFINITE:
+                bird.fly();
+                soundManager.playClick();
+                break;
             case REVIVE_CONFIRM:
                 restartGame();
                 break;
             case GAME_OVER:
                 restartGame();
                 break;
+            case PAUSED:
+                state = GameState.RUNNING;
+                break;
             default:
-                handleClick();
+                // 其他状态不做处理
                 break;
         }
     }
