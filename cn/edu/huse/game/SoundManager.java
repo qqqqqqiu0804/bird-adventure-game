@@ -14,6 +14,9 @@ public class SoundManager {
     private Clip levelCompleteClip;
     private Clip powerUpClip;
     private Clip coinClip;
+    private Clip[] coinClips;      // 金币音效变体
+    private Clip hoverClip;        // 按钮悬停音效
+    private Clip transitionClip;   // 页面切换音效
     private SettingsManager settingsManager;  // 添加设置管理器引用
 
     /**
@@ -29,6 +32,23 @@ public class SoundManager {
         levelCompleteClip = loadClip("levelcomplete.wav");
         powerUpClip = loadClip("powerup.wav");
         coinClip = loadClip("coin.wav");
+
+        // 加载音效变体
+        coinClips = new Clip[3];
+        coinClips[0] = loadClip("coin1.wav");
+        coinClips[1] = loadClip("coin2.wav");
+        coinClips[2] = loadClip("coin3.wav");
+
+        // 如果变体加载失败，使用默认金币音效
+        for (int i = 0; i < coinClips.length; i++) {
+            if (coinClips[i] == null) {
+                coinClips[i] = coinClip;
+            }
+        }
+
+        // UI音效
+        hoverClip = loadClip("hover.wav");
+        transitionClip = loadClip("transition.wav");
     }
 
     /**
@@ -134,5 +154,66 @@ public class SoundManager {
      */
     public void playCoin() {
         play(coinClip);
+    }
+
+    /**
+     * 随机播放金币音效
+     */
+    public void playRandomCoin() {
+        if (coinClips == null || coinClips.length == 0) {
+            play(coinClip);
+            return;
+        }
+
+        int index = (int)(Math.random() * coinClips.length);
+        play(coinClips[index]);
+    }
+
+    /**
+     * 变调播放音效
+     * @param clip 音频片段
+     * @param pitch 音高倍数 (0.5 - 2.0)
+     */
+    private void playWithPitch(Clip clip, float pitch) {
+        if (clip == null) return;
+        try {
+            // 通过改变采样率实现变调
+            if (clip.isControlSupported(FloatControl.Type.SAMPLE_RATE)) {
+                FloatControl rateControl = (FloatControl) clip.getControl(FloatControl.Type.SAMPLE_RATE);
+                float baseRate = rateControl.getValue();
+                rateControl.setValue(baseRate * pitch);
+            }
+            clip.setFramePosition(0);
+            clip.start();
+        } catch (Exception e) {
+            // 降级到普通播放
+            play(clip);
+        }
+    }
+
+    /**
+     * 播放碰撞音效（根据强度变调）
+     * @param hard 是否为强烈碰撞
+     */
+    public void playHit(boolean hard) {
+        if (hard) {
+            playWithPitch(hitClip, 0.8f);  // 低沉音效
+        } else {
+            playWithPitch(hitClip, 1.2f);  // 高音音效
+        }
+    }
+
+    /**
+     * 播放按钮悬停音效
+     */
+    public void playButtonHover() {
+        play(hoverClip);
+    }
+
+    /**
+     * 播放页面切换音效
+     */
+    public void playScreenTransition() {
+        play(transitionClip);
     }
 }
