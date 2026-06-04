@@ -41,6 +41,7 @@ public class BirdGame extends JPanel {
     TutorialManager tutorialManager;          // 教程管理器
     int screenAlpha = 0;                      // 屏幕透明度（用于淡入淡出）
     boolean showTutorial = false;             // 是否显示教程
+    JFrame parentFrame;                       // 父窗口引用（用于对话框）
 
     // 缓存字体
     Font scoreFont = new Font(Font.SANS_SERIF, Font.BOLD, 30);
@@ -130,6 +131,7 @@ public class BirdGame extends JPanel {
     public static void main(String[] args) throws Exception {
         JFrame frame = new JFrame("飞翔小鸟 - 冒险版");
         BirdGame game = new BirdGame();
+        game.parentFrame = frame;  // 设置父窗口引用
         frame.add(game);
         frame.setSize(GameConfig.WIDTH, GameConfig.HEIGHT);
         frame.setLocationRelativeTo(null);
@@ -1934,6 +1936,87 @@ public class BirdGame extends JPanel {
             settingsManager.setSfxVolume(Math.min(100, settingsManager.getSfxVolume() + 10));
             soundManager.playClick();
         }
+        // 导入存档按钮
+        else if (isButtonClick(mouseX, mouseY, 50, 540, 120, 35)) {
+            // 打开文件选择器
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("选择存档文件");
+            fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("存档文件 (*.dat)", "dat"));
+            int result = fileChooser.showOpenDialog(parentFrame);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                java.io.File selectedFile = fileChooser.getSelectedFile();
+                // 导入到第一个空槽位
+                for (int i = 0; i < 3; i++) {
+                    if (saveManager.getSlotInfo(i).isEmpty) {
+                        boolean success = saveManager.importSaveFromFile(i, selectedFile.getAbsolutePath());
+                        if (success) {
+                            cheatMessage = "存档导入成功！";
+                            cheatMessageTimer = 120;
+                        } else {
+                            cheatMessage = "存档导入失败！";
+                            cheatMessageTimer = 120;
+                        }
+                        break;
+                    }
+                }
+            }
+            soundManager.playClick();
+        }
+        // 导出存档按钮
+        else if (isButtonClick(mouseX, mouseY, 200, 540, 120, 35)) {
+            // 找到第一个有存档的槽位
+            int slotToExport = -1;
+            for (int i = 0; i < 3; i++) {
+                if (!saveManager.getSlotInfo(i).isEmpty) {
+                    slotToExport = i;
+                    break;
+                }
+            }
+            if (slotToExport >= 0) {
+                // 打开文件选择器
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setDialogTitle("保存存档文件");
+                fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("存档文件 (*.dat)", "dat"));
+                fileChooser.setSelectedFile(new java.io.File("save_" + (slotToExport + 1) + ".dat"));
+                int result = fileChooser.showSaveDialog(parentFrame);
+                if (result == JFileChooser.APPROVE_OPTION) {
+                    java.io.File selectedFile = fileChooser.getSelectedFile();
+                    String filePath = selectedFile.getAbsolutePath();
+                    if (!filePath.endsWith(".dat")) {
+                        filePath += ".dat";
+                    }
+                    boolean success = saveManager.exportSave(slotToExport, filePath);
+                    if (success) {
+                        cheatMessage = "存档导出成功！";
+                        cheatMessageTimer = 120;
+                    } else {
+                        cheatMessage = "存档导出失败！";
+                        cheatMessageTimer = 120;
+                    }
+                }
+            } else {
+                cheatMessage = "没有可导出的存档！";
+                cheatMessageTimer = 120;
+            }
+            soundManager.playClick();
+        }
+        // 重置金币按钮
+        else if (isButtonClick(mouseX, mouseY, 50, 640, 120, 35)) {
+            settingsManager.resetCoins(scoreManager);
+            cheatMessage = "金币已重置！当前金币: " + scoreManager.getTotalCoins();
+            cheatMessageTimer = 180;
+            soundManager.playClick();
+        }
+        // 恢复出厂设置按钮
+        else if (isButtonClick(mouseX, mouseY, 200, 640, 150, 35)) {
+            settingsManager.factoryReset();
+            // 重新加载游戏状态
+            scoreManager = new ScoreManager();
+            achievementManager = new AchievementManager();
+            cheatMessage = "已恢复出厂设置！金币已重置为: " + scoreManager.getTotalCoins();
+            cheatMessageTimer = 180;
+            soundManager.playClick();
+        }
         // 存档槽位操作
         else {
             for (int i = 0; i < 3; i++) {
@@ -1968,55 +2051,23 @@ public class BirdGame extends JPanel {
                     }
                     // 重命名按钮
                     else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH - 120, slotY + 10, 70, 40)) {
-                        // 简单重命名：使用时间戳
-                        String newName = "存档" + (i + 1) + "-" + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HHmmss"));
-                        saveManager.renameGame(i, newName);
+                        // 弹出输入框让用户输入名字
+                        String newName = JOptionPane.showInputDialog(parentFrame, "请输入存档名称:", "重命名存档", JOptionPane.PLAIN_MESSAGE);
+                        if (newName != null && !newName.trim().isEmpty()) {
+                            saveManager.renameGame(i, newName.trim());
+                            cheatMessage = "存档已重命名为: " + newName.trim();
+                            cheatMessageTimer = 120;
+                        }
                         soundManager.playClick();
                         break;
                     }
                 }
             }
-
-            // 导入存档按钮
-            if (isButtonClick(mouseX, mouseY, 50, 500, 120, 35)) {
-                // 简化：导入到第一个空槽位
-                for (int i = 0; i < 3; i++) {
-                    if (saveManager.getSlotInfo(i).isEmpty) {
-                        // 这里简化处理，实际应该打开文件选择器
-                        soundManager.playClick();
-                        break;
-                    }
-                }
-            }
-            // 导出存档按钮
-            else if (isButtonClick(mouseX, mouseY, 200, 500, 120, 35)) {
-                // 简化：导出当前槽位
-                if (saveManager.getCurrentSlot() >= 0) {
-                    String json = saveManager.exportSave(saveManager.getCurrentSlot());
-                    if (json != null) {
-                        // 这里简化处理，实际应该保存到文件
-                        soundManager.playClick();
-                    }
-                }
-            }
-            // 重置金币按钮
-            else if (isButtonClick(mouseX, mouseY, 50, 600, 120, 35)) {
-                settingsManager.resetCoins(scoreManager);
-                soundManager.playClick();
-            }
-            // 恢复出厂设置按钮
-            else if (isButtonClick(mouseX, mouseY, 200, 600, 150, 35)) {
-                settingsManager.factoryReset();
-                // 重新加载游戏状态
-                scoreManager = new ScoreManager();
-                achievementManager = new AchievementManager();
-                soundManager.playClick();
-            }
-            // 返回按钮
-            else if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, GameConfig.HEIGHT - 80, 160, 50)) {
-                state = GameState.MAIN_MENU;
-                soundManager.playClick();
-            }
+        }
+        // 返回按钮
+        if (isButtonClick(mouseX, mouseY, GameConfig.WIDTH / 2 - 80, GameConfig.HEIGHT - 80, 160, 50)) {
+            state = GameState.MAIN_MENU;
+            soundManager.playClick();
         }
     }
 

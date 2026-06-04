@@ -517,6 +517,48 @@ public class SaveManager {
     }
 
     /**
+     * 导出存档到文件
+     * @param slotIndex 槽位索引
+     * @param filePath 文件路径
+     * @return 是否成功
+     */
+    public boolean exportSave(int slotIndex, String filePath) {
+        try {
+            String json = exportSave(slotIndex);
+            if (json == null) return false;
+
+            PrintWriter writer = new PrintWriter(new FileWriter(filePath));
+            writer.print(json);
+            writer.close();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * 从文件导入存档
+     * @param slotIndex 槽位索引
+     * @param filePath 文件路径
+     * @return 是否成功
+     */
+    public boolean importSaveFromFile(int slotIndex, String filePath) {
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(filePath));
+            StringBuilder json = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                json.append(line).append("\n");
+            }
+            reader.close();
+
+            return importSave(slotIndex, json.toString());
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
      * 保存槽位到文件
      */
     private void saveSlotToFile(int slotIndex) {
